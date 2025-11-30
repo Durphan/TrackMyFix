@@ -15,7 +15,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Set;
@@ -32,7 +31,8 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UserNotFoundException {
-        User user = userRepository.findByEmailAndActive(email).orElseThrow(() -> new UserNotFoundException("Email " + email + " not found"));
+        User user = userRepository.findByEmailAndActive(email)
+                .orElseThrow(() -> new UserNotFoundException("Email " + email + " not found"));
         String userPass = null;
         switch (user.getRole()) {
             case ADMIN -> userPass = adminRepository.findById(user.getId()).get().getPassword();
@@ -45,17 +45,16 @@ public class MyUserDetailsService implements UserDetailsService {
                 user.getId(),
                 user.getEmail(),
                 userPass,
-                authority
-        );
+                authority);
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
+    UserDetailsService userDetailsService() {
         return username -> this.loadUserByUsername(username);
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
+    AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
         provider.setUserDetailsService(userDetailsService());
@@ -63,11 +62,12 @@ public class MyUserDetailsService implements UserDetailsService {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
     @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
+    BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder(12);
     }
 }

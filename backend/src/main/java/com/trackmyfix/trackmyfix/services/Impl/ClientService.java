@@ -2,7 +2,6 @@ package com.trackmyfix.trackmyfix.services.Impl;
 
 import com.trackmyfix.trackmyfix.Dto.Request.UserRequestDTO;
 import com.trackmyfix.trackmyfix.Dto.Response.UserResponseDTO;
-import com.trackmyfix.trackmyfix.aspects.annotations.UserChangeNotify;
 import com.trackmyfix.trackmyfix.entity.Client;
 import com.trackmyfix.trackmyfix.exceptions.UserNotFoundException;
 import com.trackmyfix.trackmyfix.repository.UserRepository;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-
 
 @Service
 @AllArgsConstructor
@@ -29,8 +27,8 @@ public class ClientService implements IUserService<UserResponseDTO> {
     @SneakyThrows
     @Override
     public UserResponseDTO findById(Long id) {
-        return mapToDTO(clientRepository.findById(id).orElseThrow(()->
-                new UserNotFoundException("Client "+id+" not found")));
+        return mapToDTO(clientRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Client " + id + " not found")));
     }
 
     @Override
@@ -46,16 +44,11 @@ public class ClientService implements IUserService<UserResponseDTO> {
     }
 
     @Override
-    public Map<String,String> delete(Long id) {
-        Client client = clientRepository.findById(id).orElseThrow(()->new UserNotFoundException("User not found"));
-        if (client.getActive()){
-            clientRepository.deleteById(id);
-            return Map.of("message","User id: "+id+" marked as INACTIVE success");
-        } else {
-            client.setActive(true);
-            clientRepository.save(client);
-            return Map.of("message","User id: "+id+" marked as ACTIVE success");
-        }
+    public Map<String, String> delete(Long id) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
+        client.setActive(false);
+        clientRepository.save(client);
+        return Map.of("message", "User id: " + id + " marked as INACTIVE success");
     }
 
     private UserResponseDTO mapToDTO(Client user) {

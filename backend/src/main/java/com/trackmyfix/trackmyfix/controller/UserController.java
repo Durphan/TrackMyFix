@@ -1,11 +1,12 @@
 package com.trackmyfix.trackmyfix.controller;
 
-import com.trackmyfix.trackmyfix.Dto.Request.LoginRequestDTO;
 import com.trackmyfix.trackmyfix.Dto.Request.UserRequestDTO;
 import com.trackmyfix.trackmyfix.Dto.Response.UserResponseDTO;
 import com.trackmyfix.trackmyfix.entity.Role;
 import com.trackmyfix.trackmyfix.entity.UserJwtData;
 import com.trackmyfix.trackmyfix.services.Impl.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -21,55 +22,62 @@ import java.util.Optional;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/user")
+@Tag(name = "User Management", description = "APIs for managing users")
 public class UserController {
 
     private final UserService userService;
 
     @PostMapping(value = "/login")
-    public ResponseEntity<Map<String,String>> login(
-                @RequestParam(name= "username") Optional<String> username,
-                @RequestParam(name= "password") Optional<String> password,
-                @RequestParam(name= "refresh_token") Optional<String> token
-            ) {
+    @Operation(summary = "User login", description = "Authenticate user with username/password or refresh token")
+    public ResponseEntity<Map<String, String>> login(
+            @RequestParam(name = "username") Optional<String> username,
+            @RequestParam(name = "password") Optional<String> password,
+            @RequestParam(name = "refresh_token") Optional<String> token) {
         ResponseEntity<Map<String, String>> response = null;
         if (username.isPresent() && password.isPresent() && token.isEmpty()) {
             response = ResponseEntity.ok(userService.verify(username.get(), password.get()));
         }
         if (username.isEmpty() && password.isEmpty() && token.isPresent()) {
-            response =  ResponseEntity.ok(userService.refreshToken(token.get()));
+            response = ResponseEntity.ok(userService.refreshToken(token.get()));
         }
         return response;
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get user by ID", description = "Retrieve a user by their ID")
     public ResponseEntity<UserResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findById(id));
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Register a new user", description = "Create a new user account")
     public ResponseEntity<UserResponseDTO> save(@Validated @RequestBody UserRequestDTO user) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(user));
     }
 
     @PutMapping("/update")
+    @Operation(summary = "Update user", description = "Update the current user's information")
     public ResponseEntity<UserResponseDTO> update(@Validated @RequestBody UserRequestDTO user) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.update(user));
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete user", description = "Delete a user by their ID")
     public ResponseEntity<Map<String, String>> delete(@PathVariable Long id) {
         return ResponseEntity.ok(userService.delete(id));
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<UserResponseDTO> profile(){
+    @Operation(summary = "Get user profile", description = "Retrieve the current user's profile")
+    public ResponseEntity<UserResponseDTO> profile() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         UserJwtData user = (UserJwtData) authentication.getPrincipal();
         return ResponseEntity.ok(userService.findById(user.getId()));
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<UserResponseDTO>> all(@RequestParam(name="role") Optional<Role> role){
+    @Operation(summary = "Get all users", description = "Retrieve a list of users filtered by role")
+    public ResponseEntity<List<UserResponseDTO>> all(@RequestParam(name = "role") Optional<Role> role) {
         return ResponseEntity.ok(userService.findAll(role.orElse(Role.CLIENT)));
     }
 }

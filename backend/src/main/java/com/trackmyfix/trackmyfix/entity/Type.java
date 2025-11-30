@@ -1,7 +1,5 @@
 package com.trackmyfix.trackmyfix.entity;
 
-import jakarta.persistence.Entity;
-
 public enum Type {
     COMPUTADORA_PORTATIL,
     COMPUTADORA_DE_ESCRITORIO,

@@ -1,7 +1,7 @@
 package com.trackmyfix.trackmyfix.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.trackmyfix.trackmyfix.utils.MessagesUtils;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -57,6 +57,7 @@ public class Order implements Serializable {
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Size(max = 1, message = "{device.exactly.one}")
     @JsonManagedReference
+    @Builder.Default
     private List<Device> devices = new ArrayList<>();
 
     @PrePersist

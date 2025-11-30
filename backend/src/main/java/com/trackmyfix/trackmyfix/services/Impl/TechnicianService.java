@@ -2,8 +2,6 @@ package com.trackmyfix.trackmyfix.services.Impl;
 
 import com.trackmyfix.trackmyfix.Dto.Request.UserRequestDTO;
 import com.trackmyfix.trackmyfix.Dto.Response.UserResponseDTO;
-import com.trackmyfix.trackmyfix.aspects.annotations.UserChangeNotify;
-import com.trackmyfix.trackmyfix.entity.Client;
 import com.trackmyfix.trackmyfix.entity.Technician;
 import com.trackmyfix.trackmyfix.exceptions.UserNotFoundException;
 import com.trackmyfix.trackmyfix.repository.UserRepository;
@@ -28,8 +26,8 @@ public class TechnicianService implements IUserService<UserResponseDTO> {
 
     @Override
     public UserResponseDTO findById(Long id) {
-        return mapToDTO(technicianRepository.findById(id).orElseThrow(()->
-                new UserNotFoundException("Technician "+id+" not found")));
+        return mapToDTO(technicianRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Technician " + id + " not found")));
     }
 
     @Override
@@ -45,16 +43,12 @@ public class TechnicianService implements IUserService<UserResponseDTO> {
     }
 
     @Override
-    public Map<String,String> delete(Long id) {
-        Technician technician = technicianRepository.findById(id).orElseThrow(()->new UserNotFoundException("User not found"));
-        if (technician.getActive()){
-            technicianRepository.deleteById(id);
-            return Map.of("message","User id: "+id+" marked as INACTIVE success");
-        } else {
-            technician.setActive(true);
-            technicianRepository.save(technician);
-            return Map.of("message","User id: "+id+" marked as ACTIVE success");
-        }
+    public Map<String, String> delete(Long id) {
+        Technician technician = technicianRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        technician.setActive(false);
+        technicianRepository.save(technician);
+        return Map.of("message", "User id: " + id + " marked as INACTIVE success");
     }
 
     private UserResponseDTO mapToDTO(Technician user) {

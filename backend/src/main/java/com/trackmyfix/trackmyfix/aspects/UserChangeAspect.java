@@ -1,10 +1,8 @@
 package com.trackmyfix.trackmyfix.aspects;
 
 import com.trackmyfix.trackmyfix.Dto.Request.UserRequestDTO;
-import com.trackmyfix.trackmyfix.Dto.Response.UserResponseDTO;
 import com.trackmyfix.trackmyfix.aspects.annotations.UserChangeNotify;
 import com.trackmyfix.trackmyfix.entity.ActionUser;
-import com.trackmyfix.trackmyfix.entity.Role;
 import com.trackmyfix.trackmyfix.entity.User;
 import com.trackmyfix.trackmyfix.entity.UserJwtData;
 import com.trackmyfix.trackmyfix.exceptions.UserNotFoundException;
@@ -15,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -52,7 +49,7 @@ public class UserChangeAspect {
                     if (arg instanceof UserRequestDTO) {
                         this.user.set((UserRequestDTO) arg);
                     }
-                    if(arg instanceof Long) {
+                    if (arg instanceof Long) {
                         this.deletedId.set((Long) arg);
                     }
                 });
@@ -67,12 +64,13 @@ public class UserChangeAspect {
             if (auth.getPrincipal() != "anonymousUser") {
                 String WARN_MESSAGE = "Only technicians and client roles can interact with userChanges in Db. log not saved";
                 UserJwtData jwtUser = (UserJwtData) auth.getPrincipal();
-                boolean isTechnician = Objects.equals(jwtUser.getAuthorities(), Set.of(new SimpleGrantedAuthority(TECHNICIAN.name())));
+                boolean isTechnician = Objects.equals(jwtUser.getAuthorities(),
+                        Set.of(new SimpleGrantedAuthority(TECHNICIAN.name())));
                 if (isTechnician) {
-                    switch(actionUser){
+                    switch (actionUser) {
                         case MODIFICO_DATOS_CLIENTE -> {
-                            if(user.get() != null) {
-                                if(user.get().getRole() == CLIENT) {
+                            if (user.get() != null) {
+                                if (user.get().getRole() == CLIENT) {
                                     userChangeService.save(actionUser, jwtUser.getId(), user.get().getId());
                                 } else {
                                     log.warn(WARN_MESSAGE);
@@ -81,7 +79,8 @@ public class UserChangeAspect {
                         }
                         case DESACTIVO_CUENTA_CLIENTE, ACTIVO_CUENTA_CLIENTE, ELIMINO_CLIENTE -> {
                             if (deletedId.get() != 0L) {
-                                User found = userRepository.findById(deletedId.get()).orElseThrow(()-> new UserNotFoundException("user not found"));
+                                User found = userRepository.findById(deletedId.get())
+                                        .orElseThrow(() -> new UserNotFoundException("user not found"));
                                 if (found.getRole() == CLIENT) {
                                     userChangeService.save(
                                             found.getActive()
@@ -95,10 +94,11 @@ public class UserChangeAspect {
                             }
                         }
                         case AGREGO_CLIENTE -> {
-                            User newUser = userRepository.findByEmailAndActive(user.get().getEmail()).orElseThrow(()-> new UserNotFoundException("Email not found"));
+                            User newUser = userRepository.findByEmailAndActive(user.get().getEmail())
+                                    .orElseThrow(() -> new UserNotFoundException("Email not found"));
                             userChangeService.save(actionUser, jwtUser.getId(), newUser.getId());
                         }
-                        default -> log.error("Action UserChange "+actionUser+" doesn't exist");
+                        default -> log.error("Action UserChange " + actionUser + " doesn't exist");
                     }
                 } else {
                     log.warn(WARN_MESSAGE);
@@ -110,7 +110,7 @@ public class UserChangeAspect {
     }
 
     @AfterThrowing(value = "@annotation(com.trackmyfix.trackmyfix.aspects.annotations.UserChangeNotify)")
-    public void afterThrowingHandler(JoinPoint joinPoint, Exception ex){
+    public void afterThrowingHandler(JoinPoint joinPoint, Exception ex) {
         log.error(ex.getMessage());
     }
 }

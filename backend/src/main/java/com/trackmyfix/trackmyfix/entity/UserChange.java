@@ -2,9 +2,6 @@ package com.trackmyfix.trackmyfix.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
 
 import java.io.Serializable;
 import java.util.Date;

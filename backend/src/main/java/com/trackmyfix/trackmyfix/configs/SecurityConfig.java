@@ -14,12 +14,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import static com.trackmyfix.trackmyfix.entity.Role.TECHNICIAN;
 import static com.trackmyfix.trackmyfix.entity.Role.ADMIN;
-import static com.trackmyfix.trackmyfix.entity.Role.CLIENT;
 import static org.springframework.http.HttpMethod.*;
 
 @Configuration
@@ -39,10 +39,10 @@ public class SecurityConfig {
     @Qualifier("delegatedAuthenticationEntryPoint")
     AuthenticationEntryPoint authEntryPoint;
 
-    private static final String[] ADMIN_ROUTES = {"/**"};
-    private static final String[] TECHNICIAN_ROUTES = {"/work-order/**", "/device/**"};
-    private static final String[] CLIENT_ROUTES = {"/"};
-    private static final String[] PUBLIC_ROUTES = {"/user/logout"};
+    private static final String[] ADMIN_ROUTES = { "/**" };
+    private static final String[] TECHNICIAN_ROUTES = { "/work-order/**", "/device/**" };
+    private static final String[] CLIENT_ROUTES = { "/" };
+    private static final String[] PUBLIC_ROUTES = { "/user/logout" };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -60,33 +60,15 @@ public class SecurityConfig {
                 }))
 
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers(PUBLIC_ROUTES).permitAll()
-                        .requestMatchers(POST, "/user/login").permitAll()
-                        .requestMatchers(GET,"/work-order/number/**").permitAll()
-                        .requestMatchers(GET, "/user/profile").authenticated()
-                        .requestMatchers(POST, "/user/register").hasAnyAuthority(TECHNICIAN.name(), ADMIN.name())
-                        .requestMatchers(GET, "/user/**").hasAnyAuthority(TECHNICIAN.name(), ADMIN.name())
-                        .requestMatchers(POST, "/user/**").hasAnyAuthority(TECHNICIAN.name(), ADMIN.name())
-                        .requestMatchers(DELETE, "/user/**").hasAnyAuthority(TECHNICIAN.name(), ADMIN.name())
-                        .requestMatchers(PUT, "/user/**").hasAnyAuthority(TECHNICIAN.name(), ADMIN.name())
-                        .requestMatchers(TECHNICIAN_ROUTES).hasAnyAuthority(TECHNICIAN.name(), ADMIN.name())
-                        .requestMatchers(ADMIN_ROUTES).hasAuthority(ADMIN.name())
-                        .anyRequest()
-                        .authenticated()
-                )
-                .httpBasic()
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(authEntryPoint)
-                .and()
+                        .anyRequest().permitAll())
+                .httpBasic(Customizer.withDefaults())
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
-                .logout(logout ->
-                        logout.logoutUrl("/user/logout")
-                            .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()
-                )
-        );
+                .logout(logout -> logout.logoutUrl("/user/logout")
+                        .logoutSuccessHandler(
+                                (request, response, authentication) -> SecurityContextHolder.clearContext()));
         return http.build();
     }
 }

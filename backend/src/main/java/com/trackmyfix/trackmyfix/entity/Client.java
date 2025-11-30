@@ -3,15 +3,12 @@ package com.trackmyfix.trackmyfix.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import jakarta.persistence.PrePersist;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import lombok.AllArgsConstructor;
 import org.hibernate.annotations.*;
-
-import java.util.Date;
 
 @Entity
 @DiscriminatorValue("Client")

@@ -1,7 +1,6 @@
 package com.trackmyfix.trackmyfix.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -57,7 +56,7 @@ public class Device implements Serializable {
     private String technicalReport;
 
     @NotNull(message = "{device.order.mandatory}")
-    @JoinColumn(name = "id_order", nullable=false)
+    @JoinColumn(name = "id_order", nullable = false)
     @JsonBackReference
     @ManyToOne
     private Order order;

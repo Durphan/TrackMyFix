@@ -1,7 +1,7 @@
 package com.trackmyfix.trackmyfix.entity;
 
 import lombok.Getter;
-import lombok.ToString;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -24,7 +24,8 @@ public class UserJwtData implements UserDetails {
     }
 
     public String toString() {
-        return "UserJwtData(id=" + this.getId() + ", username=" + this.getUsername() + ", authorities=" + this.getAuthorities() + ")";
+        return "UserJwtData(id=" + this.getId() + ", username=" + this.getUsername() + ", authorities="
+                + this.getAuthorities() + ")";
     }
 
     private Collection<? extends GrantedAuthority> authorities;

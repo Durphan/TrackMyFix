@@ -1,7 +1,5 @@
 package com.trackmyfix.trackmyfix.entity;
 
-import jakarta.persistence.Entity;
-
 public enum Action {
     CREO_ORDEN_TRABAJO,
     MODIFICO_ORDEN_TRABAJO,

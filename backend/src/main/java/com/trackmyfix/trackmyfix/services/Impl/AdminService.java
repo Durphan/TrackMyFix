@@ -15,7 +15,6 @@ import lombok.SneakyThrows;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.Map;
 
 @Service
@@ -46,16 +45,11 @@ public class AdminService implements IUserService<UserResponseDTO> {
 
     @Override
     @SneakyThrows
-    public Map<String,String> delete(Long id) {
-        Admin admin = adminRepository.findById(id).orElseThrow(()->new UserNotFoundException("User not found"));
-        if (admin.getActive()){
-            adminRepository.deleteById(id);
-            return Map.of("message","User id: "+id+" marked as INACTIVE success");
-        } else {
-            admin.setActive(true);
-            adminRepository.save(admin);
-            return Map.of("message","User id: "+id+" marked as ACTIVE success");
-        }
+    public Map<String, String> delete(Long id) {
+        Admin admin = adminRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
+        admin.setActive(false);
+        adminRepository.save(admin);
+        return Map.of("message", "User id: " + id + " marked as INACTIVE success");
     }
 
     private void createUserChange(ActionUser actionUser, Technician technician) {

@@ -24,12 +24,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.management.relation.RoleInfoNotFoundException;
-import javax.naming.InsufficientResourcesException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.trackmyfix.trackmyfix.entity.Role.*;
 
@@ -48,7 +45,8 @@ public class UserService {
     private MyUserDetailsService myUserDetails;
 
     public UserResponseDTO findById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User " + id + " not found"));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User " + id + " not found"));
         return switch (user.getRole()) {
             case ADMIN -> adminService.findById(id);
             case TECHNICIAN -> technicianService.findById(id);
@@ -67,14 +65,14 @@ public class UserService {
                     if (Objects.equals(authority, ADMIN.name())) {
                         return adminService.save(user);
                     } else {
-                        throw new InsufficientAuthenticationException("Only Admins can create "+ ADMIN.name());
+                        throw new InsufficientAuthenticationException("Only Admins can create " + ADMIN.name());
                     }
                 }
                 case TECHNICIAN -> {
                     if (Objects.equals(authority, ADMIN.name())) {
                         return technicianService.save(user);
                     } else {
-                        throw new InsufficientAuthenticationException("Only Admins can create "+TECHNICIAN.name());
+                        throw new InsufficientAuthenticationException("Only Admins can create " + TECHNICIAN.name());
                     }
                 }
                 case CLIENT -> {
@@ -99,21 +97,21 @@ public class UserService {
                     if (Objects.equals(authority, ADMIN.name())) {
                         return adminService.save(user);
                     } else {
-                        throw new InsufficientAuthenticationException("Only Admins can update "+ ADMIN.name());
+                        throw new InsufficientAuthenticationException("Only Admins can update " + ADMIN.name());
                     }
                 }
                 case TECHNICIAN -> {
                     if (Objects.equals(authority, ADMIN.name())) {
                         return technicianService.save(user);
                     } else {
-                        throw new InsufficientAuthenticationException("Only Admins can update "+TECHNICIAN.name());
+                        throw new InsufficientAuthenticationException("Only Admins can update " + TECHNICIAN.name());
                     }
                 }
                 case CLIENT -> {
                     if (verify.getRole() == CLIENT) {
                         return clientService.update(user);
                     } else if (Objects.equals(authority, ADMIN.name())) {
-                            return clientService.update(user);
+                        return clientService.update(user);
                     } else {
                         throw new InsufficientAuthenticationException("Only Admin can change user Role");
                     }
@@ -121,13 +119,13 @@ public class UserService {
                 default -> throw new RoleInfoNotFoundException("role Not found");
             }
         } else {
-            throw new InsufficientAuthenticationException("Only Admins can create "+TECHNICIAN.name());
+            throw new InsufficientAuthenticationException("Only Admins can create " + TECHNICIAN.name());
         }
     }
 
     @SneakyThrows
     @UserChangeNotify(actionUser = ActionUser.DESACTIVO_CUENTA_CLIENTE)
-    public Map<String,String> delete(Long id) {
+    public Map<String, String> delete(Long id) {
         UserResponseDTO user = this.findById(id);
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth.getPrincipal() != "anonymousUser") {
@@ -137,14 +135,14 @@ public class UserService {
                     if (Objects.equals(authority, ADMIN.name())) {
                         return adminService.delete(id);
                     } else {
-                        throw new InsufficientAuthenticationException("Only Admins can Delete "+ ADMIN.name());
+                        throw new InsufficientAuthenticationException("Only Admins can Delete " + ADMIN.name());
                     }
                 }
                 case TECHNICIAN -> {
                     if (Objects.equals(authority, ADMIN.name())) {
                         return technicianService.delete(id);
                     } else {
-                        throw new InsufficientAuthenticationException("Only Admins can Delete "+ TECHNICIAN.name());
+                        throw new InsufficientAuthenticationException("Only Admins can Delete " + TECHNICIAN.name());
                     }
                 }
                 case CLIENT -> {
@@ -156,20 +154,23 @@ public class UserService {
             throw new InsufficientAuthenticationException("authentication error");
         }
     }
+
     @SneakyThrows
     public Map<String, String> verify(String username, String password) {
-        Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        Authentication authentication = authManager
+                .authenticate(new UsernamePasswordAuthenticationToken(username, password));
         if (authentication.isAuthenticated()) {
             return jwtService.generateToken(username);
         } else {
             throw new Exception("Login failed");
         }
     }
+
     @SneakyThrows
     public Map<String, String> refreshToken(String token) {
         String email = jwtService.extractUsername(token, TokenType.REFRESH);
         UserDetails userDetails = myUserDetails.loadUserByUsername(email);
-        boolean isValid = jwtService.validateToken(token,TokenType.REFRESH, userDetails);
+        boolean isValid = jwtService.validateToken(token, TokenType.REFRESH, userDetails);
         if (isValid) {
             return jwtService.generateToken(email);
         } else {
@@ -177,10 +178,10 @@ public class UserService {
         }
     }
 
-    public List<UserResponseDTO> findAll(Role role){
+    public List<UserResponseDTO> findAll(Role role) {
         return userRepository.findAll().stream()
-                    .filter(user -> user.getRole() == role)
-                    .map(this::mapToDTO).toList();
+                .filter(user -> user.getRole() == role)
+                .map(this::mapToDTO).toList();
     }
 
     private UserResponseDTO mapToDTO(User user) {
