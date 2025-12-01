@@ -18,7 +18,7 @@ services:
       start_period: 10s
   trackmyfix:
     build:
-      dockerfile: ./backend.dockerfile
+      dockerfile: ./backend/Dockerfile
       context: ./
     image: trackmyfix:latest
     container_name: trackmyfix
@@ -41,7 +41,7 @@ services:
   front-trackmyfix:
     container_name: front
     build:
-      dockerfile: ./front.dockerfile
+      dockerfile: ./frontend/Dockerfile
       context: ./
     image: front-trackmyfix
     volumes:
