@@ -20,17 +20,18 @@ services:
     build:
       dockerfile: ./backend/Dockerfile
       context: ./
-    image: trackmyfix:latest
     container_name: trackmyfix
     mem_limit: 512m
     environment:
-      DB_HOST: "jdbc:mysql://db-trackmyfix:3307/track_my_fix_db?createDatabaseIfNotExist=true&serverTimezone=UTC"
+      DB_HOST: jdbc:mysql://db-trackmyfix:3306/track_my_fix_db?createDatabaseIfNotExist=true&serverTimezone=UTC
+      DB_USER: root
+      PORT: 9091
     networks:
       - trackmyfix_net
     ports:
-      - 9091:9091
+      - 9092:9091
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9091/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:9092/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -54,28 +55,13 @@ services:
     ports:
       - 5173:5173
     environment:
-      VITE_BACKEND_URL: http://localhost:9091
+      VITE_BACKEND_URL: http://localhost:9092
     networks:
       - trackmyfix_net
     depends_on:
       db-trackmyfix:
         condition: service_healthy
       trackmyfix:
-        condition: service_started
-  trackmyfix-test:
-    profiles: ["test"]
-    build:
-      dockerfile: ./backend.dockerfile
-      context: ./
-      target: build
-    container_name: trackmyfix-test
-    environment:
-      DB_HOST: "jdbc:mysql://db-trackmyfix:3306/track_my_fix_test_db?createDatabaseIfNotExist=true&serverTimezone=UTC"
-    networks:
-      - trackmyfix_net
-    command: ["./mvnw", "test"]
-    depends_on:
-      db-trackmyfix:
         condition: service_healthy
 networks:
   trackmyfix_net:

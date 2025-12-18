@@ -8,6 +8,6 @@ EXPOSE 5173
 FROM node:22-alpine as run
 RUN addgroup allusers && adduser -S -G allusers username
 WORKDIR /usr/code
-COPY --from=build /usr/code/ .
+COPY --from=build --chown=username:allusers /usr/code/ . 
 USER username
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "preview"]

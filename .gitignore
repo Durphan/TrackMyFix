@@ -1,9 +1,8 @@
 .idea
 .vscode
 out
-.env
+*.env
 .mvn
-.env
 target
 mvnw
 mvnw.cmd
