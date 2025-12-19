@@ -3,6 +3,7 @@ package com.trackmyfix.trackmyfix.configs.auth;
 import com.trackmyfix.trackmyfix.Dto.Request.TokenType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,13 +20,11 @@ import java.util.function.Function;
 @Service
 public class JWTService {
 
-    @Value(value = "${app.security.jwt.secret-key}")
-    private String secretkey;
-    @Value(value = "${app.security.jwt.secret-refresh}")
-    private String refreshKey;
-    @Value(value = "${app.security.jwt.expiration}")
+    private SecretKey secretkey = Jwts.SIG.HS256.key().build();
+    private SecretKey refreshKey = Jwts.SIG.HS256.key().build();
+    @Value(value = "900000")
     private String jwtExpiration;
-    @Value(value = "${app.security.jwt.refresh-token.expiration}")
+    @Value(value = "604800000")
     private String jwtRefreshExpiration;
 
     public Map<String, String> generateToken(String gmail) {
@@ -63,16 +62,14 @@ public class JWTService {
         tokenInfo.put("issued_at", issuedAt.toString());
         tokenInfo.put("expires_in", jwtExpiration);
         tokenInfo.put("refresh_expires", jwtRefreshExpiration);
+
         return tokenInfo;
     }
 
     private SecretKey getKey(TokenType type) {
-        String secret = null;
-        switch (type) {
-            case ACCESS -> secret = secretkey;
-            case REFRESH -> secret = refreshKey;
-        }
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        String base64 = Encoders.BASE64.encode(secretkey.getEncoded());
+        System.out.println(base64);
+        byte[] keyBytes = Decoders.BASE64.decode(base64);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -87,7 +84,6 @@ public class JWTService {
     }
 
     private Claims extractAllClaims(String token, TokenType type) {
-
         return Jwts.parser()
                 .verifyWith(getKey(type))
                 .build()

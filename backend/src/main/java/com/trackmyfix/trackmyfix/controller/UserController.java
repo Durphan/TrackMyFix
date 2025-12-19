@@ -1,5 +1,6 @@
 package com.trackmyfix.trackmyfix.controller;
 
+import com.trackmyfix.trackmyfix.Dto.Request.LoginRequestDTO;
 import com.trackmyfix.trackmyfix.Dto.Request.UserRequestDTO;
 import com.trackmyfix.trackmyfix.Dto.Response.UserResponseDTO;
 import com.trackmyfix.trackmyfix.entity.Role;
@@ -28,16 +29,16 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping(value = "/login")
-    @Operation(summary = "User login", description = "Authenticate user with username/password or refresh token")
+    @Operation(tags = "user, login", summary = "User login", description = "Authenticate user with username/password or refresh token")
     public ResponseEntity<Map<String, String>> login(
-            @RequestParam String gmail,
-            @RequestParam String password) {
+            @RequestBody @Validated LoginRequestDTO loginRequest) {
         ResponseEntity<Map<String, String>> response = null;
-        response = ResponseEntity.ok(userService.verify(gmail, password));
+        response = ResponseEntity.ok(userService.verify(loginRequest.getEmail(), loginRequest.getPassword()));
         return response;
     }
 
     @PostMapping("/refresh-token")
+    @Operation(summary = "Refresh JWT token", description = "Generate a new JWT token using a refresh token")
     public ResponseEntity<Map<String, String>> refreshToken(
             @RequestParam(name = "refresh_token") String token) {
         return ResponseEntity.ok(userService.refreshToken(token));
@@ -70,7 +71,8 @@ public class UserController {
     @GetMapping("/profile")
     @Operation(summary = "Get user profile", description = "Retrieve the current user's profile")
     public ResponseEntity<UserResponseDTO> profile() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
         UserJwtData user = (UserJwtData) authentication.getPrincipal();
         return ResponseEntity.ok(userService.findById(user.getId()));
     }

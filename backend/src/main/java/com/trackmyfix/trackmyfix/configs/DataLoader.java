@@ -17,11 +17,12 @@ public class DataLoader {
             UserChangeDataLoader userChangeDataLoader) {
         return args -> {
             userDataLoader.load();
-            orderDataLoader.load();
-            deviceDataLoader.load();
-            movementDataLoader.load();
-            userChangeDataLoader.load();
-
+            /*
+             * orderDataLoader.load();
+             * deviceDataLoader.load();
+             * movementDataLoader.load();
+             * userChangeDataLoader.load();
+             */
         };
     }
 }

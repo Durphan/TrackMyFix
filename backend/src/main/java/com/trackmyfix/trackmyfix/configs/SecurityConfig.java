@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -15,12 +16,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import static com.trackmyfix.trackmyfix.entity.Role.TECHNICIAN;
 import static com.trackmyfix.trackmyfix.entity.Role.ADMIN;
-import static org.springframework.http.HttpMethod.*;
 
 @Configuration
 @EnableWebSecurity
@@ -35,17 +36,24 @@ public class SecurityConfig {
         this.authenticationProvider = authenticationProvider;
     }
 
+    @Bean
+    WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(PUBLIC_ROUTES);
+    }
+
     @Autowired
     @Qualifier("delegatedAuthenticationEntryPoint")
     AuthenticationEntryPoint authEntryPoint;
 
     private static final String[] ADMIN_ROUTES = { "/**" };
-    private static final String[] TECHNICIAN_ROUTES = { "/work-order/**", "/device/**" };
+    private static final String[] TECHNICIAN_ROUTES = { "/work-order/**", "/device/**", "/logs/**" };
     private static final String[] CLIENT_ROUTES = { "/" };
-    private static final String[] PUBLIC_ROUTES = { "/user/logout" };
+    private static final String[] PUBLIC_ROUTES = { "/user/logout", "/user/refresh-token", "/user/login",
+            "/user/register",
+            "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**" };
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(request -> {
                     CorsConfiguration configuration = new CorsConfiguration();
@@ -55,12 +63,14 @@ public class SecurityConfig {
                     configuration.addAllowedMethod("DELETE");
                     configuration.addAllowedMethod("OPTIONS");
                     configuration.addAllowedHeader("*");
-                    configuration.addAllowedOrigin("*");
+                    configuration.addAllowedOriginPattern("*");
                     return configuration;
-                }))
-
-                .authorizeHttpRequests(request -> request
-                        .anyRequest().permitAll())
+                })).authorizeHttpRequests(request -> request
+                        .requestMatchers(ADMIN_ROUTES).hasAuthority(ADMIN.name())
+                        .requestMatchers(TECHNICIAN_ROUTES).hasAnyAuthority(TECHNICIAN.name(), ADMIN.name())
+                        .requestMatchers(CLIENT_ROUTES).hasAnyAuthority(ADMIN.name(), TECHNICIAN.name())
+                        .requestMatchers(PUBLIC_ROUTES).permitAll()
+                        .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -71,4 +81,5 @@ public class SecurityConfig {
                                 (request, response, authentication) -> SecurityContextHolder.clearContext()));
         return http.build();
     }
+
 }
