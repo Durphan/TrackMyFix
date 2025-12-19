@@ -30,17 +30,17 @@ public class UserController {
     @PostMapping(value = "/login")
     @Operation(summary = "User login", description = "Authenticate user with username/password or refresh token")
     public ResponseEntity<Map<String, String>> login(
-            @RequestParam(name = "username") Optional<String> username,
-            @RequestParam(name = "password") Optional<String> password,
-            @RequestParam(name = "refresh_token") Optional<String> token) {
+            @RequestParam(name = "username") String username,
+            @RequestParam(name = "password") String password) {
         ResponseEntity<Map<String, String>> response = null;
-        if (username.isPresent() && password.isPresent() && token.isEmpty()) {
-            response = ResponseEntity.ok(userService.verify(username.get(), password.get()));
-        }
-        if (username.isEmpty() && password.isEmpty() && token.isPresent()) {
-            response = ResponseEntity.ok(userService.refreshToken(token.get()));
-        }
+        response = ResponseEntity.ok(userService.verify(username, password));
         return response;
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<Map<String, String>> refreshToken(
+            @RequestParam(name = "refresh_token") String token) {
+        return ResponseEntity.ok(userService.refreshToken(token));
     }
 
     @GetMapping("/{id}")
