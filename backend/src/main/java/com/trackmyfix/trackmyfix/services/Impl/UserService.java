@@ -156,11 +156,11 @@ public class UserService {
     }
 
     @SneakyThrows
-    public Map<String, String> verify(String username, String password) {
+    public Map<String, String> verify(String email, String password) {
         Authentication authentication = authManager
-                .authenticate(new UsernamePasswordAuthenticationToken(username, password));
+                .authenticate(new UsernamePasswordAuthenticationToken(email, password));
         if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(username);
+            return jwtService.generateToken(email);
         } else {
             throw new Exception("Login failed");
         }

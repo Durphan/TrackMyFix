@@ -30,10 +30,10 @@ public class UserController {
     @PostMapping(value = "/login")
     @Operation(summary = "User login", description = "Authenticate user with username/password or refresh token")
     public ResponseEntity<Map<String, String>> login(
-            @RequestParam(name = "username") String username,
-            @RequestParam(name = "password") String password) {
+            @RequestParam String gmail,
+            @RequestParam String password) {
         ResponseEntity<Map<String, String>> response = null;
-        response = ResponseEntity.ok(userService.verify(username, password));
+        response = ResponseEntity.ok(userService.verify(gmail, password));
         return response;
     }
 

@@ -19,16 +19,16 @@ import java.util.function.Function;
 @Service
 public class JWTService {
 
-    @Value(value="${app.security.jwt.secret-key}")
+    @Value(value = "${app.security.jwt.secret-key}")
     private String secretkey;
-    @Value(value="${app.security.jwt.secret-refresh}")
+    @Value(value = "${app.security.jwt.secret-refresh}")
     private String refreshKey;
-    @Value(value="${app.security.jwt.expiration}")
+    @Value(value = "${app.security.jwt.expiration}")
     private String jwtExpiration;
-    @Value(value="${app.security.jwt.refresh-token.expiration}")
+    @Value(value = "${app.security.jwt.refresh-token.expiration}")
     private String jwtRefreshExpiration;
 
-    public Map<String, String> generateToken(String username) {
+    public Map<String, String> generateToken(String gmail) {
         Map<String, Object> claims = new HashMap<>();
         Map<String, String> tokenInfo = new HashMap<>();
         Date issuedAt = new Date(System.currentTimeMillis());
@@ -38,7 +38,7 @@ public class JWTService {
         String access_token = Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(username)
+                .subject(gmail)
                 .issuedAt(issuedAt)
                 .expiration(access_expiration)
                 .issuer("trackmyfix")
@@ -49,7 +49,7 @@ public class JWTService {
         String refresh_token = Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(username)
+                .subject(gmail)
                 .issuedAt(issuedAt)
                 .expiration(refresh_expiration)
                 .issuer("trackmyfix")
@@ -67,7 +67,7 @@ public class JWTService {
     }
 
     private SecretKey getKey(TokenType type) {
-        String secret= null;
+        String secret = null;
         switch (type) {
             case ACCESS -> secret = secretkey;
             case REFRESH -> secret = refreshKey;
@@ -85,7 +85,6 @@ public class JWTService {
         final Claims claims = extractAllClaims(token, type);
         return claimResolver.apply(claims);
     }
-
 
     private Claims extractAllClaims(String token, TokenType type) {
 
